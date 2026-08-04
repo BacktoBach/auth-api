@@ -25,15 +25,15 @@ Health check: http://localhost:3000/health
 
 ## Endpoints
 
-| Method | Endpoint | Quyền | Mô tả |
-| --- | --- | --- | --- |
-| POST | `/api/auth/register` | Public | Đăng ký tài khoản user |
-| POST | `/api/auth/login` | Public | Đăng nhập và nhận JWT |
-| GET | `/api/auth/me` | User/Admin | Thông tin người dùng hiện tại |
-| PUT | `/api/auth/change-password` | User/Admin | Đổi mật khẩu |
-| POST | `/api/auth/logout` | User/Admin | Hướng dẫn client xóa JWT |
-| GET | `/api/auth/users` | Admin | Danh sách người dùng, kiểm tra RBAC |
-| GET | `/health` | Public | Railway health check |
+| Method | Endpoint                      | Quyền     | Mô tả                                  |
+| ------ | ----------------------------- | ---------- | ---------------------------------------- |
+| POST   | `/api/auth/register`        | Public     | Đăng ký tài khoản user              |
+| POST   | `/api/auth/login`           | Public     | Đăng nhập và nhận JWT               |
+| GET    | `/api/auth/me`              | User/Admin | Thông tin người dùng hiện tại      |
+| PUT    | `/api/auth/change-password` | User/Admin | Đổi mật khẩu                         |
+| POST   | `/api/auth/logout`          | User/Admin | Hướng dẫn client xóa JWT             |
+| GET    | `/api/auth/users`           | Admin      | Danh sách người dùng, kiểm tra RBAC |
+| GET    | `/health`                   | Public     | Railway health check                     |
 
 `GET /health` trả `200` khi MongoDB đã kết nối và `503` khi database mất kết nối.
 
@@ -90,4 +90,4 @@ JWT là stateless nên server không thể xóa token trong LocalStorage/Memory.
 6. Đăng nhập lại bằng mật khẩu mới để lấy token mới.
 7. Gọi `POST {{baseUrl}}/api/auth/logout`, sau đó xóa token trong Postman/client.
 
-Để kiểm tra RBAC, đổi role của tài khoản thành `admin` trong MongoDB, đăng nhập lại để lấy token, rồi gọi `GET {{baseUrl}}/api/auth/users`. Token của user thường sẽ nhận lỗi `403 Forbidden`.
+Để kiểm tra RBAC, đổi role của tài khoản thành `admin` trong MongoDB, đăng nhập lại để lấy token, rồi gọi `GET {{baseUrl}}/api/auth/users`. Token của user thường sẽ nhận lỗi `403 Forbidden`...
