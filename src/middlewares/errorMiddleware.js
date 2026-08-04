@@ -5,6 +5,7 @@ const notFound = (req, res, next) => {
 };
 
 const errorHandler = (err, req, res, next) => {
+
   let statusCode = err.statusCode || 500;
   let error = err.error || 'Internal Server Error';
   let message = err.message || 'Lỗi máy chủ';

@@ -22,10 +22,14 @@ after(async () => {
   });
 });
 
-test('GET /health returns a successful response', async () => {
+test('GET /health reports that the database is disconnected in an isolated test', async () => {
   const response = await fetch(`${baseUrl}/health`);
-  assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { message: 'API is running', statusCode: 200 });
+  const body = await response.json();
+
+  assert.equal(response.status, 503);
+  assert.equal(body.status, 'unhealthy');
+  assert.equal(body.database, 'disconnected');
+  assert.equal(body.statusCode, 503);
 });
 
 test('GET / shows API information', async () => {
@@ -54,6 +58,22 @@ test('protected endpoint rejects requests without a Bearer token', async () => {
   assert.equal(response.status, 401);
   assert.deepEqual(Object.keys(body).sort(), ['error', 'message', 'statusCode']);
   assert.equal(body.error, 'Unauthorized');
+});
+
+test('register returns 400 instead of 500 when JSON Content-Type is missing', async () => {
+  const response = await fetch(`${baseUrl}/api/auth/register`, {
+    method: 'POST',
+    body: JSON.stringify({
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'Password123'
+    })
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, 'Bad Request');
+  assert.equal(body.statusCode, 400);
 });
 
 test('RBAC rejects a user from an admin-only action', () => {

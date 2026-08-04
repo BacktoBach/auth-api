@@ -8,6 +8,14 @@ REST API xác thực người dùng với Node.js, Express và MongoDB.
 2. Sao chép `.env.example` thành `.env` và điền các biến môi trường.
 3. Chạy `npm run dev`.
 
+`JWT_SECRET` phải là chuỗi ngẫu nhiên có ít nhất 32 ký tự. `CLIENT_ORIGIN` là danh sách origin frontend được phép, phân tách bằng dấu phẩy; có thể bỏ trống khi chưa có frontend.
+
+Có thể tạo JWT secret an toàn bằng lệnh:
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
 Khi server khởi động thành công, terminal sẽ hiển thị hai link có thể bấm:
 
 ```text
@@ -27,6 +35,8 @@ Health check: http://localhost:3000/health
 | GET | `/api/auth/users` | Admin | Danh sách người dùng, kiểm tra RBAC |
 | GET | `/health` | Public | Railway health check |
 
+`GET /health` trả `200` khi MongoDB đã kết nối và `503` khi database mất kết nối.
+
 Protected route cần header `Authorization: Bearer <token>`.
 
 ## Tạo tài khoản admin
@@ -44,8 +54,10 @@ db.users.updateOne(
 
 1. Đẩy source lên GitHub và tạo Railway project từ repository.
 2. Thêm `MONGO_URI` và `JWT_SECRET` trong Railway Variables. Không commit `.env`.
-3. Railway dùng `npm start` và kiểm tra `/health` theo `railway.json`.
+3. Railway dùng `node server.js` và kiểm tra `/health` theo `railway.json`.
 4. Generate Domain trong Networking, rồi mở `https://<domain>/health`.
+
+Server lắng nghe biến `PORT` do Railway cấp trên host `0.0.0.0`. Cấu hình deploy dùng Railpack và dành 10 giây để ứng dụng đóng HTTP server cùng kết nối MongoDB khi nhận `SIGTERM`.
 
 JWT là stateless nên server không thể xóa token trong LocalStorage/Memory. Client phải xóa token sau khi logout. Token hết hạn sau 1 ngày; sau khi đổi mật khẩu, token cũ bị từ chối ngay.
 

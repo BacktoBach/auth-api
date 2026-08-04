@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
 
-const TOKEN_EXPIRES_IN = '1d';
+const TOKEN_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
 
 const createToken = (id) => {
   if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is not configured');
@@ -17,7 +17,10 @@ const publicUser = (user) => ({
 });
 
 const requireFields = (body, fields) => {
-  const missing = fields.filter((field) => typeof body[field] !== 'string' || !body[field].trim());
+  const input = body && typeof body === 'object' ? body : {};
+  const missing = fields.filter(
+    (field) => typeof input[field] !== 'string' || !input[field].trim()
+  );
   if (missing.length) {
     throw new AppError(`Thiếu trường bắt buộc: ${missing.join(', ')}`, 400, 'Bad Request');
   }
@@ -28,10 +31,6 @@ exports.register = async (req, res, next) => {
     requireFields(req.body, ['name', 'email', 'password']);
     const { name, password } = req.body;
     const email = req.body.email.trim().toLowerCase();
-
-    if (await User.exists({ email })) {
-      throw new AppError('Email đã được sử dụng', 409, 'Conflict');
-    }
 
     const user = await User.create({ name: name.trim(), email, password, role: 'user' });
     res.status(201).json({
