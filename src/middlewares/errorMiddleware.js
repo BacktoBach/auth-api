@@ -1,10 +1,10 @@
-const AppError = require('../utils/AppError');
+import AppError from '../utils/AppError.js';
 
-const notFound = (req, res, next) => {
+export const notFound = (req, res, next) => {
   next(new AppError(`Endpoint ${req.method} ${req.originalUrl} không tồn tại`, 404, 'Not Found'));
 };
 
-const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, next) => {
 
   let statusCode = err.statusCode || 500;
   let error = err.error || 'Internal Server Error';
@@ -26,5 +26,3 @@ const errorHandler = (err, req, res, next) => {
 
   res.status(statusCode).json({ message, error, statusCode });
 };
-
-module.exports = { notFound, errorHandler };

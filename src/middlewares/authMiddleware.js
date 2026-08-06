@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const AppError = require('../utils/AppError');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import AppError from '../utils/AppError.js';
 
-const protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
     if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -34,11 +34,9 @@ const protect = async (req, res, next) => {
   }
 };
 
-const authorize = (...roles) => (req, res, next) => {
+export const authorize = (...roles) => (req, res, next) => {
   if (!roles.includes(req.user.role)) {
     return next(new AppError('Bạn không có quyền truy cập tài nguyên này', 403, 'Forbidden'));
   }
   return next();
 };
-
-module.exports = { protect, authorize };

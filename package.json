@@ -12,7 +12,7 @@
   "keywords": ["jwt", "authentication", "rbac", "express", "mongodb"],
   "author": "",
   "license": "MIT",
-  "type": "commonjs",
+  "type": "module",
   "engines": {
     "node": ">=20"
   },

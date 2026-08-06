@@ -1,6 +1,6 @@
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
-const { validateEnv } = require('../src/config/env');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { validateEnv } from '../src/config/env.js';
 
 const validEnv = {
   MONGO_URI: 'mongodb://localhost:27017/auth-test',

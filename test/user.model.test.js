@@ -1,7 +1,7 @@
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
-const bcrypt = require('bcryptjs');
-const User = require('../src/models/User');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import bcrypt from 'bcryptjs';
+import User from '../src/models/User.js';
 
 test('User pre-save hook hashes a new password', async () => {
   const plainPassword = 'Password123';

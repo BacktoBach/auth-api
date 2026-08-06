@@ -1,71 +1,101 @@
-# Auth API — JWT, bcrypt và RBAC
+# JWT Authentication API
 
-REST API xác thực người dùng với Node.js, Express và MongoDB.
+REST API xác thực và phân quyền người dùng, xây dựng bằng Node.js, Express và MongoDB. Project minh họa quy trình đăng ký, đăng nhập, bảo vệ route bằng JWT, đổi mật khẩu và kiểm soát truy cập theo vai trò (RBAC).
 
-## Chạy local
+## Tính năng
 
-1. Chạy `npm install`.
-2. Sao chép `.env.example` thành `.env` và điền các biến môi trường.
-3. Chạy `npm run dev`.
+- Đăng ký tài khoản và hash mật khẩu bằng bcrypt.
+- Đăng nhập bằng email/password và cấp JWT có thời hạn 1 ngày.
+- Middleware xác thực `Authorization: Bearer <token>`.
+- Phân quyền `user` và `admin`.
+- Đổi mật khẩu sau khi xác minh mật khẩu hiện tại.
+- Vô hiệu hóa token cũ sau khi đổi mật khẩu.
+- Error response thống nhất theo cấu trúc `{ message, error, statusCode }`.
+- Health check phản ánh trạng thái kết nối MongoDB.
+- Validate biến môi trường ngay khi khởi động.
+- Graceful shutdown cho HTTP server và MongoDB.
+- Cấu hình triển khai Railway bằng Railpack.
 
-`JWT_SECRET` phải là chuỗi ngẫu nhiên có ít nhất 32 ký tự. `CLIENT_ORIGIN` là danh sách origin frontend được phép, phân tách bằng dấu phẩy; có thể bỏ trống khi chưa có frontend.
+## Công nghệ
 
-Có thể tạo JWT secret an toàn bằng lệnh:
+- Node.js 20+
+- ES Modules (`import` / `export`)
+- Express 5
+- MongoDB và Mongoose
+- JSON Web Token
+- bcryptjs
+- Node.js Test Runner
 
-```powershell
+## Cấu trúc project
+
+```text
+auth-api/
+├── src/
+│   ├── config/          # Cấu hình database và environment
+│   ├── controllers/     # Xử lý nghiệp vụ xác thực
+│   ├── middlewares/     # JWT, RBAC và error handling
+│   ├── models/          # Mongoose schemas
+│   ├── routes/          # Khai báo API routes
+│   ├── utils/           # Các lớp/hàm dùng chung
+│   └── app.js           # Cấu hình Express application
+├── test/                # Automated tests
+├── server.js            # Khởi động và graceful shutdown server
+├── railway.json         # Cấu hình deploy Railway
+└── .env.example         # Mẫu biến môi trường
+```
+
+## Cài đặt và chạy local
+
+Yêu cầu Node.js phiên bản 20 trở lên và một MongoDB connection string.
+
+```bash
+npm install
+```
+
+Tạo file `.env` dựa trên `.env.example`:
+
+```env
+PORT=3000
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
+JWT_SECRET=<random-secret-with-at-least-32-characters>
+JWT_EXPIRES_IN=1d
+CLIENT_ORIGIN=http://localhost:5173
+```
+
+`CLIENT_ORIGIN` hỗ trợ nhiều origin, phân tách bằng dấu phẩy. Nếu không khai báo, API cho phép request từ mọi origin.
+
+Tạo JWT secret ngẫu nhiên:
+
+```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-Khi server khởi động thành công, terminal sẽ hiển thị hai link có thể bấm:
+Chạy development server:
 
-```text
-Server is running at http://localhost:3000
-Health check: http://localhost:3000/health
+```bash
+npm run dev
 ```
 
-## Endpoints
+Server mặc định chạy tại `http://localhost:3000`. Kiểm tra trạng thái tại `GET /health`.
 
-| Method | Endpoint                      | Quyền     | Mô tả                                  |
-| ------ | ----------------------------- | ---------- | ---------------------------------------- |
-| POST   | `/api/auth/register`        | Public     | Đăng ký tài khoản user              |
-| POST   | `/api/auth/login`           | Public     | Đăng nhập và nhận JWT               |
-| GET    | `/api/auth/me`              | User/Admin | Thông tin người dùng hiện tại      |
-| PUT    | `/api/auth/change-password` | User/Admin | Đổi mật khẩu                         |
-| POST   | `/api/auth/logout`          | User/Admin | Hướng dẫn client xóa JWT             |
-| GET    | `/api/auth/users`           | Admin      | Danh sách người dùng, kiểm tra RBAC |
-| GET    | `/health`                   | Public     | Railway health check                     |
+## API endpoints
 
-`GET /health` trả `200` khi MongoDB đã kết nối và `503` khi database mất kết nối.
+| Method | Endpoint | Access | Mô tả |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | Public | Đăng ký tài khoản với role `user` |
+| POST | `/api/auth/login` | Public | Đăng nhập và nhận JWT |
+| GET | `/api/auth/me` | User/Admin | Lấy thông tin người dùng hiện tại |
+| PUT | `/api/auth/change-password` | User/Admin | Xác minh và đổi mật khẩu |
+| POST | `/api/auth/logout` | User/Admin | Xác nhận đăng xuất phía client |
+| GET | `/api/auth/users` | Admin | Lấy danh sách người dùng |
+| GET | `/health` | Public | Kiểm tra API và MongoDB |
 
-Protected route cần header `Authorization: Bearer <token>`.
+### Register
 
-## Tạo tài khoản admin
-
-Register luôn tạo role `user` để tránh leo quyền. Đổi role cho quản trị viên đầu tiên trong MongoDB Atlas/Compass:
-
-```js
-db.users.updateOne(
-  { email: "admin@example.com" },
-  { $set: { role: "admin" } }
-)
+```http
+POST /api/auth/register
+Content-Type: application/json
 ```
-
-## Deploy Railway
-
-1. Đẩy source lên GitHub và tạo Railway project từ repository.
-2. Thêm `MONGO_URI` và `JWT_SECRET` trong Railway Variables. Không commit `.env`.
-3. Railway dùng `node server.js` và kiểm tra `/health` theo `railway.json`.
-4. Generate Domain trong Networking, rồi mở `https://<domain>/health`.
-
-Server lắng nghe biến `PORT` do Railway cấp trên host `0.0.0.0`. Cấu hình deploy dùng Railpack và dành 10 giây để ứng dụng đóng HTTP server cùng kết nối MongoDB khi nhận `SIGTERM`.
-
-JWT là stateless nên server không thể xóa token trong LocalStorage/Memory. Client phải xóa token sau khi logout. Token hết hạn sau 1 ngày; sau khi đổi mật khẩu, token cũ bị từ chối ngay.
-
-## Test bằng Postman
-
-Đặt biến collection `baseUrl` là `http://localhost:3000`, sau đó gọi lần lượt:
-
-1. `POST {{baseUrl}}/api/auth/register`
 
 ```json
 {
@@ -75,10 +105,47 @@ JWT là stateless nên server không thể xóa token trong LocalStorage/Memory.
 }
 ```
 
-2. `POST {{baseUrl}}/api/auth/login` với email và password vừa đăng ký. Sao chép `token` trong response.
-3. Ở tab Authorization của các protected request, chọn **Bearer Token** và dán token.
-4. Gọi `GET {{baseUrl}}/api/auth/me`.
-5. Gọi `PUT {{baseUrl}}/api/auth/change-password`:
+Tất cả tài khoản đăng ký qua API đều nhận role `user`; field `role` từ request không được sử dụng nhằm ngăn hành vi tự cấp quyền admin.
+
+### Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "user@example.com",
+  "password": "Password123"
+}
+```
+
+Response thành công:
+
+```json
+{
+  "message": "Đăng nhập thành công",
+  "user": {
+    "id": "662c8b7f3e9b2d4b7f1a2c3d",
+    "name": "Nguyen Van A",
+    "email": "user@example.com",
+    "role": "user"
+  },
+  "token": "<jwt-token>",
+  "expiresIn": "1d"
+}
+```
+
+### Protected routes
+
+Các protected route yêu cầu header:
+
+```http
+Authorization: Bearer <jwt-token>
+```
+
+Body của endpoint đổi mật khẩu:
 
 ```json
 {
@@ -87,7 +154,75 @@ JWT là stateless nên server không thể xóa token trong LocalStorage/Memory.
 }
 ```
 
-6. Đăng nhập lại bằng mật khẩu mới để lấy token mới.
-7. Gọi `POST {{baseUrl}}/api/auth/logout`, sau đó xóa token trong Postman/client.
+Sau khi đổi mật khẩu, token cũ không còn hợp lệ và người dùng phải đăng nhập lại.
 
-Để kiểm tra RBAC, đổi role của tài khoản thành `admin` trong MongoDB, đăng nhập lại để lấy token, rồi gọi `GET {{baseUrl}}/api/auth/users`. Token của user thường sẽ nhận lỗi `403 Forbidden`...
+### Error response
+
+```json
+{
+  "message": "Email hoặc mật khẩu không đúng",
+  "error": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+## RBAC và tài khoản admin
+
+API không cho phép client tự chọn role khi đăng ký. Tài khoản quản trị đầu tiên cần được cấp role trực tiếp trong MongoDB Atlas/Compass:
+
+```js
+db.users.updateOne(
+  { email: "admin@example.com" },
+  { $set: { role: "admin" } }
+)
+```
+
+Sau khi thay đổi role, đăng nhập lại để nhận token mới rồi gọi `GET /api/auth/users`. Token của user thông thường nhận response `403 Forbidden`.
+
+## Kiểm thử
+
+Chạy automated tests:
+
+```bash
+npm test
+```
+
+Kiểm tra cú pháp các file chính:
+
+```bash
+npm run check
+```
+
+API cũng có thể được kiểm thử bằng Postman với biến collection:
+
+```text
+baseUrl = http://localhost:3000
+```
+
+Luồng kiểm thử đề xuất: register → login → me → change password → login lại → logout. Với protected route, chọn Authorization type `Bearer Token` và sử dụng token trả về từ login.
+
+## Deploy Railway
+
+Project sử dụng `railway.json` với Railpack, start command `node server.js` và health check `/health`.
+
+Các biến cần khai báo trong Railway Variables:
+
+```text
+MONGO_URI
+JWT_SECRET
+JWT_EXPIRES_IN=1d
+CLIENT_ORIGIN
+```
+
+Railway tự cung cấp biến `PORT`. Server lắng nghe trên `0.0.0.0` và đóng kết nối an toàn khi nhận `SIGTERM`.
+
+## Lưu ý về logout
+
+JWT trong project là stateless và không được lưu tại server. Endpoint logout xác nhận thao tác, còn client chịu trách nhiệm xóa token khỏi LocalStorage, cookie hoặc memory. Token cũng tự hết hạn sau 1 ngày.
+
+## Security notes
+
+- Password không bao giờ được lưu dưới dạng plain text hoặc trả về trong response.
+- `.env` không được commit; chỉ `.env.example` được lưu trong repository.
+- JWT secret nên khác nhau giữa local, staging và production.
+- MongoDB credentials và JWT secret phải được lưu bằng secret/environment variables của nền tảng deploy.

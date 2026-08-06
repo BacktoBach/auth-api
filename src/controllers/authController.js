@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const AppError = require('../utils/AppError');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import AppError from '../utils/AppError.js';
 
 const TOKEN_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
 
@@ -26,7 +26,7 @@ const requireFields = (body, fields) => {
   }
 };
 
-exports.register = async (req, res, next) => {
+export const register = async (req, res, next) => {
   try {
     requireFields(req.body, ['name', 'email', 'password']);
     const { name, password } = req.body;
@@ -43,7 +43,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-exports.login = async (req, res, next) => {
+export const login = async (req, res, next) => {
   try {
     requireFields(req.body, ['email', 'password']);
     const email = req.body.email.trim().toLowerCase();
@@ -64,11 +64,11 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.getMe = (req, res) => {
+export const getMe = (req, res) => {
   res.status(200).json({ message: 'Lấy thông tin thành công', user: publicUser(req.user) });
 };
 
-exports.changePassword = async (req, res, next) => {
+export const changePassword = async (req, res, next) => {
   try {
     requireFields(req.body, ['oldPassword', 'newPassword']);
     if (req.body.oldPassword === req.body.newPassword) {
@@ -92,14 +92,14 @@ exports.changePassword = async (req, res, next) => {
   }
 };
 
-exports.logout = (req, res) => {
+export const logout = (req, res) => {
   res.status(200).json({
     message: 'Đăng xuất thành công. Hãy xóa token ở phía client',
     statusCode: 200
   });
 };
 
-exports.getUsers = async (req, res, next) => {
+export const getUsers = async (req, res, next) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
     res.status(200).json({

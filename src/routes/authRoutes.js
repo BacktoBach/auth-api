@@ -1,13 +1,13 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   register,
   login,
   getMe,
   changePassword,
   logout,
   getUsers
-} = require('../controllers/authController');
-const { protect, authorize } = require('../middlewares/authMiddleware');
+} from '../controllers/authController.js';
+import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -18,4 +18,4 @@ router.put('/change-password', protect, changePassword);
 router.post('/logout', protect, logout);
 router.get('/users', protect, authorize('admin'), getUsers);
 
-module.exports = router;
+export default router;

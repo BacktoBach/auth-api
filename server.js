@@ -1,9 +1,8 @@
-require('dotenv').config();
-
-const mongoose = require('mongoose');
-const connectDB = require('./src/config/db');
-const { validateEnv } = require('./src/config/env');
-const app = require('./src/app');
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import connectDB from './src/config/db.js';
+import { validateEnv } from './src/config/env.js';
+import app from './src/app.js';
 
 const HOST = '0.0.0.0';
 let server;

@@ -1,7 +1,7 @@
-const { test, before, after } = require('node:test');
-const assert = require('node:assert/strict');
-const app = require('../src/app');
-const { authorize } = require('../src/middlewares/authMiddleware');
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import app from '../src/app.js';
+import { authorize } from '../src/middlewares/authMiddleware.js';
 
 let server;
 let baseUrl;

@@ -1,9 +1,9 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const authRoutes = require('./routes/authRoutes');
-const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
-const AppError = require('./utils/AppError');
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import authRoutes from './routes/authRoutes.js';
+import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
+import AppError from './utils/AppError.js';
 
 const app = express();
 const allowedOrigins = (process.env.CLIENT_ORIGIN || '')
@@ -57,4 +57,4 @@ app.use('/api/auth', authRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

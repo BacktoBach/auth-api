@@ -1,6 +1,6 @@
 const MIN_JWT_SECRET_LENGTH = 32;
 
-const validateEnv = (env = process.env) => {
+export const validateEnv = (env = process.env) => {
   const missing = ['MONGO_URI', 'JWT_SECRET'].filter(
     (name) => typeof env[name] !== 'string' || !env[name].trim()
   );
@@ -32,4 +32,4 @@ const validateEnv = (env = process.env) => {
   });
 };
 
-module.exports = { validateEnv, MIN_JWT_SECRET_LENGTH };
+export { MIN_JWT_SECRET_LENGTH };
