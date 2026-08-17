@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { isPasswordTooLong, MAX_PASSWORD_BYTES } from '../utils/password.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,6 +23,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Mật khẩu là bắt buộc'],
       minlength: [8, 'Mật khẩu phải có ít nhất 8 ký tự'],
+      validate: {
+        validator: (value) => !isPasswordTooLong(value),
+        message: `Mật khẩu không được vượt quá ${MAX_PASSWORD_BYTES} byte`
+      },
       select: false
     },
     role: {
@@ -29,7 +34,11 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user'
     },
-    passwordChangedAt: Date
+    tokenVersion: {
+      type: Number,
+      default: 0,
+      min: 0
+    }
   },
   { timestamps: true }
 );
@@ -39,20 +48,10 @@ userSchema.pre('save', async function () {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-
-  if (!this.isNew) {
-    this.passwordChangedAt = new Date(Date.now() - 1000);
-  }
-
 });
 
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
-};
-
-userSchema.methods.changedPasswordAfter = function (jwtIssuedAt) {
-  if (!this.passwordChangedAt) return false;
-  return Math.floor(this.passwordChangedAt.getTime() / 1000) > jwtIssuedAt;
 };
 
 const User = mongoose.model('User', userSchema);

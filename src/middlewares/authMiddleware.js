@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
+import { verifyAccessToken } from '../utils/token.js';
 
 export const protect = async (req, res, next) => {
   try {
@@ -12,15 +12,15 @@ export const protect = async (req, res, next) => {
     const token = authorization.slice(7).trim();
     if (!token) throw new AppError('Token xác thực không hợp lệ', 401, 'Unauthorized');
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const decoded = verifyAccessToken(token);
+    const user = await User.findById(decoded.sub);
 
     if (!user) {
       throw new AppError('Người dùng của token không còn tồn tại', 401, 'Unauthorized');
     }
 
-    if (user.changedPasswordAfter(decoded.iat)) {
-      throw new AppError('Mật khẩu đã thay đổi, vui lòng đăng nhập lại', 401, 'Unauthorized');
+    if (decoded.tokenVersion !== (user.tokenVersion ?? 0)) {
+      throw new AppError('Token đã bị thu hồi, vui lòng đăng nhập lại', 401, 'Unauthorized');
     }
 
     req.user = user;

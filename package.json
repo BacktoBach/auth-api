@@ -6,10 +6,16 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "check": "node --check server.js && node --check src/app.js && node --check src/controllers/authController.js && node --check src/middlewares/authMiddleware.js",
+    "check": "node --check server.js && node --check src/app.js && node --check src/controllers/authController.js && node --check src/controllers/userController.js && node --check src/services/authService.js && node --check src/services/userService.js && node --check src/middlewares/authMiddleware.js && node --check src/utils/token.js",
     "test": "node --test"
   },
-  "keywords": ["jwt", "authentication", "rbac", "express", "mongodb"],
+  "keywords": [
+    "jwt",
+    "authentication",
+    "rbac",
+    "express",
+    "mongodb"
+  ],
   "author": "",
   "license": "MIT",
   "type": "module",
@@ -21,6 +27,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.8.1"
   },

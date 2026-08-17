@@ -76,6 +76,22 @@ test('register returns 400 instead of 500 when JSON Content-Type is missing', as
   assert.equal(body.statusCode, 400);
 });
 
+test('malformed JSON returns the standard Bad Request response', async () => {
+  const response = await fetch(`${baseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{invalid-json'
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(body, {
+    message: 'JSON không hợp lệ',
+    error: 'Bad Request',
+    statusCode: 400
+  });
+});
+
 test('RBAC rejects a user from an admin-only action', () => {
   let receivedError;
   authorize('admin')(

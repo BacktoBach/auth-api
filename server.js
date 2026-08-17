@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import connectDB from './src/config/db.js';
 import { validateEnv } from './src/config/env.js';
 import app from './src/app.js';
+import { listen } from './src/utils/httpServer.js';
 
 const HOST = '0.0.0.0';
 let server;
@@ -12,10 +13,14 @@ const startServer = async () => {
   const config = validateEnv();
   await connectDB(config.mongoUri);
 
-  server = app.listen(config.port, HOST, () => {
-    console.log(`Server is running at http://localhost:${config.port}`);
-    console.log(`Health check: http://localhost:${config.port}/health`);
+  server = await listen(app, config.port, HOST);
+  server.on('error', (error) => {
+    console.error('HTTP server error:', error.message);
+    void shutdown('HTTP_SERVER_ERROR', 1);
   });
+
+  console.log(`Server is running at http://localhost:${config.port}`);
+  console.log(`Health check: http://localhost:${config.port}/health`);
 };
 
 const closeHttpServer = () => new Promise((resolve, reject) => {
