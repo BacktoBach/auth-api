@@ -226,7 +226,7 @@ JWT_EXPIRES_IN=1d
 CLIENT_ORIGIN
 ```
 
-Render tự cung cấp biến `PORT`. Blueprint tự tạo `JWT_SECRET`; `MONGO_URI` và `CLIENT_ORIGIN` cần được nhập trong quá trình tạo service. Server lắng nghe trên `0.0.0.0` và có tối đa 15 giây để đóng kết nối an toàn sau khi nhận `SIGTERM`.
+Render tự cung cấp biến `PORT`. Blueprint tự tạo `JWT_SECRET`; `MONGO_URI` và `CLIENT_ORIGIN` cần được nhập trong quá trình tạo service. Server lắng nghe trên `0.0.0.0` và tự đóng HTTP server cùng kết nối MongoDB khi nhận `SIGTERM`.
 
 ## Lưu ý về logout
 
