@@ -17,6 +17,12 @@ REST API xác thực và phân quyền người dùng, xây dựng bằng Node.j
 - Graceful shutdown cho HTTP server và MongoDB.
 - Cấu hình triển khai Render bằng Blueprint.
 
+## Demo đã deploy
+
+- **Base URL:** [https://auth-api-jne3.onrender.com](https://auth-api-jne3.onrender.com)
+- **Health check:** [https://auth-api-jne3.onrender.com/health](https://auth-api-jne3.onrender.com/health)
+- **API information:** [https://auth-api-jne3.onrender.com/](https://auth-api-jne3.onrender.com/)
+
 ## Công nghệ
 
 - Node.js 20+
@@ -209,6 +215,12 @@ API cũng có thể được kiểm thử bằng Postman với biến collection
 
 ```text
 baseUrl = http://localhost:3000
+```
+
+Khi test bản đã deploy trên Render, thay bằng:
+
+```text
+baseUrl = https://auth-api-jne3.onrender.com
 ```
 
 Luồng kiểm thử đề xuất: register → login → me → change password → login lại → logout. Với protected route, chọn Authorization type `Bearer Token` và sử dụng token trả về từ login.
