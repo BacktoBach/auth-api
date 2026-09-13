@@ -1,16 +1,14 @@
 import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
+import { getAuthCookieName } from '../config/authCookie.js';
 import { verifyAccessToken } from '../utils/token.js';
 
 export const protect = async (req, res, next) => {
   try {
-    const authorization = req.headers.authorization;
-    if (!authorization || !authorization.startsWith('Bearer ')) {
+    const token = req.cookies?.[getAuthCookieName()];
+    if (!token) {
       throw new AppError('Vui lòng đăng nhập để tiếp tục', 401, 'Unauthorized');
     }
-
-    const token = authorization.slice(7).trim();
-    if (!token) throw new AppError('Token xác thực không hợp lệ', 401, 'Unauthorized');
 
     const decoded = verifyAccessToken(token);
     const user = await User.findById(decoded.sub);
@@ -23,6 +21,7 @@ export const protect = async (req, res, next) => {
       throw new AppError('Token đã bị thu hồi, vui lòng đăng nhập lại', 401, 'Unauthorized');
     }
 
+    req.auth = decoded;
     req.user = user;
     return next();
   } catch (error) {

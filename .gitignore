@@ -5,3 +5,5 @@ node_modules/
 npm-debug.log*
 .DS_Store
 coverage/
+PROJECT_GUIDE.md
+/AUTH_COOKIE_REFACTOR_PLAN.md
