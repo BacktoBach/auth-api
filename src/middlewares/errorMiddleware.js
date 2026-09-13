@@ -8,6 +8,7 @@ export const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || err.status || 500;
   let error = err.error || 'Internal Server Error';
   let message = err.message || 'Lỗi máy chủ';
+  let errors = Array.isArray(err.errors) ? err.errors : undefined;
 
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
     statusCode = 400;
@@ -20,13 +21,18 @@ export const errorHandler = (err, req, res, _next) => {
   } else if (err.name === 'ValidationError') {
     statusCode = 400;
     error = 'Bad Request';
-    message = Object.values(err.errors).map((item) => item.message).join(', ');
+    errors = Object.entries(err.errors).map(([field, item]) => ({
+      field,
+      message: item.message
+    }));
+    message = errors.map((item) => item.message).join(', ');
   }
 
   if (err.code === 11000) {
     statusCode = 409;
     error = 'Conflict';
     message = 'Email đã được sử dụng';
+    errors = [{ field: 'email', message }];
   }
 
   if (statusCode >= 500) {
@@ -34,7 +40,13 @@ export const errorHandler = (err, req, res, _next) => {
     statusCode = 500;
     error = 'Internal Server Error';
     message = 'Đã xảy ra lỗi máy chủ';
+    errors = undefined;
   }
 
-  res.status(statusCode).json({ message, error, statusCode });
+  res.status(statusCode).json({
+    message,
+    error,
+    statusCode,
+    ...(errors?.length ? { errors } : {})
+  });
 };

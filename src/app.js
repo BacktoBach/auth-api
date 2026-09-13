@@ -1,29 +1,31 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import authRoutes from './routes/authRoutes.js';
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
-import AppError from './utils/AppError.js';
+import { assertAllowedOrigin } from './config/origins.js';
+import { verifyRequestOrigin } from './middlewares/originMiddleware.js';
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_ORIGIN || '')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) {
+    try {
+      assertAllowedOrigin(origin);
       return callback(null, true);
+    } catch (error) {
+      return callback(error);
     }
-    return callback(new AppError('Origin không được phép truy cập API', 403, 'Forbidden'));
-  }
+  },
+  credentials: true
 };
 
 app.disable('x-powered-by');
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -35,7 +37,7 @@ app.get('/', (req, res) => {
       me: 'GET /api/auth/me',
       changePassword: 'PUT /api/auth/change-password',
       logout: 'POST /api/auth/logout',
-      users: 'GET /api/auth/users (admin)'
+      users: 'GET /api/auth/users?page=1&limit=20&search=... (admin)'
     },
     statusCode: 200
   });
@@ -54,7 +56,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', verifyRequestOrigin, authRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

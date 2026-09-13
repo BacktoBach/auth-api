@@ -42,3 +42,35 @@ test('environment validation enforces the required one-day token lifetime', () =
     /JWT_EXPIRES_IN must be 1d/
   );
 });
+
+test('production environment requires a client origin', () => {
+  assert.throws(
+    () => validateEnv({ ...validEnv, NODE_ENV: 'production' }),
+    /Missing required environment variables: CLIENT_ORIGIN/
+  );
+});
+
+test('production client origins must use https', () => {
+  assert.throws(
+    () => validateEnv({
+      ...validEnv,
+      NODE_ENV: 'production',
+      CLIENT_ORIGIN: 'http://frontend.example'
+    }),
+    /CLIENT_ORIGIN must use https in production/
+  );
+});
+
+test('environment validation rejects malformed client origins', () => {
+  assert.throws(
+    () => validateEnv({ ...validEnv, CLIENT_ORIGIN: 'not-a-url' }),
+    /CLIENT_ORIGIN contains an invalid URL/
+  );
+});
+
+test('environment validation rejects origins with paths or trailing slashes', () => {
+  assert.throws(
+    () => validateEnv({ ...validEnv, CLIENT_ORIGIN: 'http://localhost:5173/' }),
+    /must contain origins without paths or trailing slashes/
+  );
+});

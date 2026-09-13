@@ -10,7 +10,7 @@ router.post('/register', registerLimiter, register);
 router.post('/login', loginLimiter, login);
 router.get('/me', protect, getMe);
 router.put('/change-password', protect, changePassword);
-router.post('/logout', protect, logout);
+router.post('/logout', logout);
 router.get('/users', protect, authorize('admin'), getUsers);
 
 export default router;
